@@ -6,8 +6,33 @@ services:
     container_name: postgres-db
     env_file:
       - .env
+    environment:
+      - PGHOST=/var/run/postgresql
     volumes:
-      - "./postgresql:/postgres_init"
+      - "./postgresql/create_beers_db.sh:/docker-entrypoint-initdb.d/create_beers_db.sh"
       - pg_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  populate-db:
+    image: alpine:latest
+    env_file:
+      - .env
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - "./postgresql/populate_beers_db.sh:/populate_beers_db.sh"
+      - "./postgresql/sql_scripts:/postgres_init/sql_scripts"
+    command: /bin/sh -c '
+      apk update &&
+      apk add postgresql postgresql-client &&
+      cd /postgres_init/sql_scripts &&
+      /bin/sh /populate_beers_db.sh'
+
 volumes:
   pg_data:
