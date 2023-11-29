@@ -25,7 +25,7 @@ BEGIN
         AND trigger_name = trigger_n)
         );
 
-    IF  trigger_existence IS TRUE
+    IF trigger_existence
     THEN
 	    RAISE NOTICE 'Trigger already exists, skipping';
     ELSE
