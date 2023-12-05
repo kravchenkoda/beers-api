@@ -1,18 +1,15 @@
-import os
+from os import environ
 from urllib.parse import quote_plus
 
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy.engine import URL
-from sqlalchemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base, sessionmaker
 
-PG_USER = os.environ['PGUSER']
-PG_PASSWORD = quote_plus(os.environ['PGPASSWORD'])
-PG_DATABASE = os.environ['PGDATABASE']
-PG_HOST = os.environ['PGHOST']
-PG_PORT = int(os.environ['PGPORT'])
-
-metadata = MetaData(schema='beer')
-Base = declarative_base(metadata=metadata)
+PG_USER = environ['PGUSER']
+PG_PASSWORD = quote_plus(environ['PGPASSWORD'])
+PG_DATABASE = environ['PGDATABASE']
+PG_HOST = environ['PGHOST']
+PG_PORT = int(environ['PGPORT'])
 
 url = URL.create(
     drivername='postgresql',
@@ -23,3 +20,6 @@ url = URL.create(
 )
 
 engine = create_engine(url, echo=True)
+metadata = MetaData(schema='beer')
+Base = declarative_base(metadata=metadata)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocmmit=False)
