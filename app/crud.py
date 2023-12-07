@@ -23,7 +23,7 @@ class BeerService:
     def create_beer(self) -> None:
         """Create a new beer entry in the database."""
 
-        beers_foreign_keys = self._get_beers_foreign_keys()
+        beers_foreign_keys: dict[str, int] = self._get_beers_foreign_keys()
         beer_attributes: dict[str, float | int | str] = beers_foreign_keys
         beer_attributes['abv']: float = self.beer.abv
         beer_attributes['ibu']: int = self.beer.ibu
@@ -32,6 +32,37 @@ class BeerService:
         self._create_item(
             db_models.Beer, item_name=self.beer.name, other_attrs=beers_foreign_keys
         )
+
+    def get_beer_with_id(self) -> Optional[api_models.BeerReturn]:
+        """
+        Retrieve beer details by its ID.
+
+        Returns:
+            If beer has been found:
+                api_models.BeerReturn: object representing the beer details.
+            If beer has not been found:
+                None
+        """
+        beer_found: db_models.Beer = (
+            self.db.query(db_models.Beer)
+            .filter(db_models.Beer.id == self.beer.id)
+            .join(db_models.Style)
+            .join(db_models.Brewery)
+            .first()
+        )
+        if beer_found:
+            return api_models.BeerReturn(
+                id=beer_found.id,
+                name=beer_found.name,
+                ibu=beer_found.ibu,
+                abv=beer_found.abv,
+                ounces=beer_found.ounces,
+                style=beer_found.style.name,
+                brewery=beer_found.brewery.name,
+                city=beer_found.brewery.city.name,
+                state=beer_found.brewery.city.state.name,
+            )
+        return None
 
     def _get_beers_foreign_keys(self) -> dict[str, int]:
         result = {
