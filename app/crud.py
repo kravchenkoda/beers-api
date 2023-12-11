@@ -1,5 +1,6 @@
 from typing import Type, Optional
 
+from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 import db_models
@@ -8,7 +9,9 @@ import api_models
 
 class BeerService:
     def __init__(
-        self, db: Session, beer: api_models.BeerCreate | api_models.BeerSearch
+        self,
+        db: Session,
+        beer: api_models.BeerCreate | api_models.BeerSearch | api_models.BeerUpdate,
     ):
         """
         Initialize a BeerService instance.
@@ -43,7 +46,7 @@ class BeerService:
             If beer has not been found:
                 None
         """
-        beer_found: db_models.Beer = (
+        beer_found: Optional[db_models.Beer] = (
             self.db.query(db_models.Beer)
             .filter(db_models.Beer.id == self.beer.id)
             .join(db_models.Style)
@@ -80,20 +83,31 @@ class BeerService:
         for column_name, search_data in related_items.items():
             table, item_name = search_data
 
-            id = self._get_name_corresponding_id(table, item_name)
+            if column_name == 'city_id':
+                city_id = self._get_name_corresponding_id(
+                    table=table,
+                    item_name=item_name,
+                    other_attrs={
+                        'state_id': self._get_name_corresponding_id(
+                            table=db_models.State, item_name=self.beer.state
+                        )
+                    },
+                )
+                result[column_name] = city_id
 
-            if not id:
-                if column_name == 'city_id':
-                    self._create_item(
-                        table, item_name, other_attrs={'state_id': result['state_id']}
-                    )
-                elif column_name == 'brewery_id':
-                    self._create_item(
-                        table, item_name, other_attrs={'city_id': result['city_id']}
-                    )
-                else:
-                    self._create_item(table, item_name)
-            result[column_name] = self._get_name_corresponding_id(table, item_name)
+            elif column_name == 'brewery_id':
+                brewery_id = self._get_name_corresponding_id(
+                    table=table,
+                    item_name=item_name,
+                    other_attrs={'city_id': result['city_id']},
+                )
+                result[column_name] = brewery_id
+
+            else:
+                result[column_name] = self._get_name_corresponding_id(
+                    table=table,
+                    item_name=item_name,
+                )
         del result['state_id']
         del result['city_id']
 
@@ -106,6 +120,7 @@ class BeerService:
         | Type[db_models.Brewery]
         | Type[db_models.Style],
         item_name: str,
+        other_attrs: dict[str, str | int | float] = None,
     ) -> Optional[int]:
         result: db_models.Style | db_models.City | db_models.Brewery | None = (
             self.db.query(table.id).filter(table.name == item_name).first()
@@ -113,7 +128,12 @@ class BeerService:
         if result:
             return result.id
         else:
-            return None
+            if other_attrs:
+                self._create_item(table, item_name, other_attrs)
+            else:
+                self._create_item(table, item_name)
+
+        return self.db.query(table.id).filter(table.name == item_name).first().id
 
     def _create_item(
         self,
