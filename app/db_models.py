@@ -28,7 +28,7 @@ class City(Base):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(VARCHAR(100), nullable=False)
-    state_id: Mapped[int] = mapped_column(ForeignKey('states.id'), nullable=False)
+    state_id: Mapped[int] = mapped_column(ForeignKey('states.id'))
     state: Mapped['State'] = relationship(back_populates='cities')
     breweries: Mapped[list['Brewery']] = relationship(back_populates='city')
 
@@ -39,7 +39,7 @@ class Brewery(Base):
 
     id: Mapped[int] = mapped_column(Integer(), primary_key=True, nullable=False)
     name: Mapped[str] = mapped_column(VARCHAR(100), nullable=False)
-    city_id: Mapped[int] = mapped_column(ForeignKey('cities.id'), nullable=False)
+    city_id: Mapped[int] = mapped_column(ForeignKey('cities.id'))
     city: Mapped['City'] = relationship(back_populates='breweries')
     beers: Mapped[list['Beer']] = relationship(back_populates='brewery')
 
