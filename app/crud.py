@@ -11,7 +11,11 @@ class BeerService:
     def __init__(
         self,
         db: Session,
-        beer: api_models.BeerCreate | api_models.BeerSearch | api_models.BeerUpdate,
+        beer:
+            api_models.BeerCreate |
+            api_models.BeerSearch |
+            api_models.BeerUpdate |
+            api_models.BeerDelete,
     ):
         """
         Initialize a BeerService instance.
@@ -55,6 +59,15 @@ class BeerService:
             self._update_item(
                 table=db_models.Beer, item_id=self.beer.id, update_items=db_update_data
             )
+
+    def delete_beer(self):
+        """Remove a beer record from the database."""
+        (
+            self.db.query(db_models.Beer)
+            .filter(db_models.Beer.id == self.beer.id)
+            .delete()
+        )
+        self.db.commit()
 
     def get_beer_with_id(self) -> Optional[api_models.BeerReturn]:
         """
