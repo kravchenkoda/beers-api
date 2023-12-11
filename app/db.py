@@ -22,4 +22,4 @@ url = URL.create(
 engine = create_engine(url, echo=True)
 metadata = MetaData(schema='beer')
 Base = declarative_base(metadata=metadata)
-SessionLocal = sessionmaker(bind=engine, autoflush=False, autocmmit=False)
+SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
