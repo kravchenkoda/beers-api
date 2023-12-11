@@ -25,6 +25,18 @@ class BeerSearch(BaseModel):
     city: Optional[str] = None
 
 
+class BeerUpdate(BaseModel):
+    id: int
+    name: Optional[str] = None
+    ibu: Optional[int] = None
+    abv: Optional[float] = None
+    ounces: Optional[float] = None
+    style: Optional[str] = None
+    brewery: Optional[str] = None
+    state: Optional[str] = None
+    city: Optional[str] = None
+
+
 class BeerReturn(BeerBase):
     id: int
 
