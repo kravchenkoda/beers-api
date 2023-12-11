@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS beer.cities(
    id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
    name VARCHAR(19) NOT NULL,
-   state_id INTEGER NOT NULL references beer.states (id),
+   state_id INTEGER references beer.states (id),
    created_at TIMESTAMP without TIME ZONE DEFAULT (now() at time zone 'utc'),
    updated_at TIMESTAMP without TIME ZONE DEFAULT (now() at time zone 'utc')
 );
