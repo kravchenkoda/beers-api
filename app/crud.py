@@ -74,15 +74,17 @@ class BeerService:
             self._update_item(
                 table=db_models.Beer, item_id=self.beer.id, update_items=db_update_data
             )
+        return self.get_beer_with_id(db=self.db, beer_id=self.beer.id)
 
-    def delete_beer(self):
+    @staticmethod
+    def delete_beer(db: Session, beer_id: int):
         """Remove a beer record from the database."""
         (
-            self.db.query(db_models.Beer)
-            .filter(db_models.Beer.id == self.beer.id)
+            db.query(db_models.Beer)
+            .filter(db_models.Beer.id == beer_id)
             .delete()
         )
-        self.db.commit()
+        db.commit()
 
     @staticmethod
     def get_beer_with_id(db: Session, beer_id) -> Optional[schemas.BeerReturn]:
@@ -206,7 +208,9 @@ class BeerService:
         return db_update_data
 
     def _update_breweries_tables(self, db_update_data):
-        current_beer_data: schemas.BeerReturn = self.get_beer_with_id()
+        current_beer_data: schemas.BeerReturn = self.get_beer_with_id(
+            db=self.db, beer_id=self.beer.id
+        )
 
         city_present: Optional[int] = db_update_data.get('city_id')
         only_state_present: Optional[int] = db_update_data.get(
