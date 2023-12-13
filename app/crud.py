@@ -116,6 +116,35 @@ class BeerService:
             )
         return None
 
+    @staticmethod
+    def get_all_beers(db: Session, limit: int) -> list[schemas.BeerReturn]:
+        """
+        Retrieve a list of beers from the database.
+
+        Args:
+            db (Session): The SQLAlchemy database session.
+            limit (int): The maximum number of records to retrieve.
+
+        Returns:
+            List[schemas.BeerReturn]: A list of BeerReturn objects.
+        """
+        if limit:
+            beer_records = (
+                db.query(db_models.Beer)
+                .limit(limit).all()
+            )
+        else:
+            beer_records = (
+                db.query(db_models.Beer)
+                .all()
+            )
+        beers_to_return: list[schemas.BeerReturn] = [
+            BeerService.get_beer_with_id(db=db, beer_id=row.id)
+            for row in beer_records
+        ]
+
+        return beers_to_return
+
     def _update_item(
         self,
         item_id: int,
