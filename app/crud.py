@@ -4,7 +4,7 @@ from sqlalchemy import update
 from sqlalchemy.orm import Session
 
 import db_models
-import api_models
+import schemas
 
 
 class BeerService:
@@ -12,22 +12,27 @@ class BeerService:
         self,
         db: Session,
         beer:
-            api_models.BeerCreate |
-            api_models.BeerSearch |
-            api_models.BeerUpdate |
-            api_models.BeerDelete,
+            schemas.BeerCreate |
+            schemas.BeerSearch |
+            schemas.BeerUpdate |
+            schemas.BeerDelete,
     ):
         """
         Initialize a BeerService instance.
 
         Args:
             db (Session): SQLAlchemy database session.
-            beer (api_models.BeerCreate | api_models.BeerSearch): Beer data.
+            beer (
+                schemas.BeerCreate |
+                schemas.BeerSearch |
+                schemas.BeerUpdate |
+                schemas.BeerDelete
+            ): Beer data.
         """
         self.db = db
         self.beer = beer
 
-    def create_beer(self) -> None:
+    def create_beer(self) -> schemas.BeerReturn:
         """Create a new beer entry in the database."""
 
         beers_foreign_keys: dict[str, int] = self._get_beers_foreign_keys()
@@ -39,8 +44,18 @@ class BeerService:
         self._create_item(
             db_models.Beer, item_name=self.beer.name, other_attrs=beers_foreign_keys
         )
+        new_beer_id: int = (
+            self.db.query(db_models.Beer).
+            filter(db_models.Beer.brewery_id == beer_attributes['brewery_id']).
+            filter(db_models.Beer.name == self.beer.name)
+        ).first().id
 
-    def update_beer(self):
+        return schemas.BeerReturn(
+            id=new_beer_id,
+            **self.beer.model_dump()
+        )
+
+    def update_beer(self) -> Optional[schemas.BeerReturn]:
         """Update a beer in the database."""
         if not (
             self.db.query(db_models.Beer)
@@ -69,7 +84,7 @@ class BeerService:
         )
         self.db.commit()
 
-    def get_beer_with_id(self) -> Optional[api_models.BeerReturn]:
+    def get_beer_with_id(self) -> Optional[schemas.BeerReturn]:
         """
         Retrieve beer details by its ID.
 
@@ -87,7 +102,7 @@ class BeerService:
             .first()
         )
         if beer_found:
-            return api_models.BeerReturn(
+            return schemas.BeerReturn(
                 id=beer_found.id,
                 name=beer_found.name,
                 ibu=beer_found.ibu,
@@ -161,7 +176,7 @@ class BeerService:
         return db_update_data
 
     def _update_breweries_tables(self, db_update_data):
-        current_beer_data: api_models.BeerReturn = self.get_beer_with_id()
+        current_beer_data: schemas.BeerReturn = self.get_beer_with_id()
 
         city_present: Optional[int] = db_update_data.get('city_id')
         only_state_present: Optional[int] = db_update_data.get(
