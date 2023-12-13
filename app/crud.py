@@ -84,7 +84,8 @@ class BeerService:
         )
         self.db.commit()
 
-    def get_beer_with_id(self) -> Optional[schemas.BeerReturn]:
+    @staticmethod
+    def get_beer_with_id(db: Session, beer_id) -> Optional[schemas.BeerReturn]:
         """
         Retrieve beer details by its ID.
 
@@ -95,8 +96,8 @@ class BeerService:
                 None
         """
         beer_found: Optional[db_models.Beer] = (
-            self.db.query(db_models.Beer)
-            .filter(db_models.Beer.id == self.beer.id)
+            db.query(db_models.Beer)
+            .filter(db_models.Beer.id == beer_id)
             .join(db_models.Style)
             .join(db_models.Brewery)
             .first()
