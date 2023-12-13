@@ -43,3 +43,7 @@ class BeerReturn(BeerBase):
 
 class BeerCreate(BeerBase):
     pass
+
+
+class BeerDelete(BaseModel):
+    id: int
