@@ -34,5 +34,17 @@ services:
       cd /postgres_init/sql_scripts &&
       /bin/sh /populate_beers_db.sh'
 
+  fast-api-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    depends_on:
+      populate-db:
+        condition: service_completed_successfully
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+
 volumes:
   pg_data:
