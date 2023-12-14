@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import Integer, ForeignKey, NUMERIC, VARCHAR
 
-from db import Base
+from dependencies.db import Base
 
 
 class Style(Base):

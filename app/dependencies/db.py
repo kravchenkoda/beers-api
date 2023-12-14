@@ -23,3 +23,11 @@ engine = create_engine(url, echo=True)
 metadata = MetaData(schema='beer')
 Base = declarative_base(metadata=metadata)
 SessionLocal = sessionmaker(bind=engine, autoflush=False, autocommit=False)
+
+
+def get_db():
+    db = SessionLocal()
+    try:
+        yield db
+    finally:
+        db.close()
