@@ -13,7 +13,6 @@ class BeerService:
         db: Session,
         beer:
             schemas.BeerCreate |
-            schemas.BeerSearch |
             schemas.BeerUpdate |
             schemas.BeerDelete,
     ):
@@ -55,26 +54,26 @@ class BeerService:
             **self.beer.model_dump()
         )
 
-    def update_beer(self) -> Optional[schemas.BeerReturn]:
+    def update_beer(self, beer_id: int) -> Optional[schemas.BeerReturn]:
         """Update a beer in the database."""
         if not (
             self.db.query(db_models.Beer)
-            .filter(db_models.Beer.id == self.beer.id)
+            .filter(db_models.Beer.id == beer_id)
             .first()
         ):
             return None
 
         db_update_data = self._prepare_db_update_data()
-        self._update_breweries_tables(db_update_data)
+        self._update_breweries_tables(db_update_data, beer_id)
 
         db_update_data.pop('city_id', None)
         db_update_data.pop('state_id', None)
         db_update_data.pop('id', None)
         if db_update_data:
             self._update_item(
-                table=db_models.Beer, item_id=self.beer.id, update_items=db_update_data
+                table=db_models.Beer, item_id=beer_id, update_items=db_update_data
             )
-        return self.get_beer_with_id(db=self.db, beer_id=self.beer.id)
+        return self.get_beer_with_id(db=self.db, beer_id=beer_id)
 
     @staticmethod
     def delete_beer(db: Session, beer_id: int):
@@ -87,7 +86,7 @@ class BeerService:
         db.commit()
 
     @staticmethod
-    def get_beer_with_id(db: Session, beer_id) -> Optional[schemas.BeerReturn]:
+    def get_beer_with_id(db: Session, beer_id: int) -> Optional[schemas.BeerReturn]:
         """
         Retrieve beer details by its ID.
 
@@ -207,9 +206,9 @@ class BeerService:
 
         return db_update_data
 
-    def _update_breweries_tables(self, db_update_data):
+    def _update_breweries_tables(self, db_update_data, beer_id: int):
         current_beer_data: schemas.BeerReturn = self.get_beer_with_id(
-            db=self.db, beer_id=self.beer.id
+            db=self.db, beer_id=beer_id
         )
 
         city_present: Optional[int] = db_update_data.get('city_id')

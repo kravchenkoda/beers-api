@@ -46,8 +46,7 @@ def get_beer_with_id(
 
 @beers_router.patch('/{beer_id}', response_model=schemas.BeerReturn)
 def update_beer(beer: schemas.BeerUpdate, beer_id: int, db: Session = Depends(get_db)):
-    beer.id = beer_id
-    result = crud.BeerService(db=db, beer=beer).update_beer()
+    result = crud.BeerService(db=db, beer=beer).update_beer(beer_id=beer_id)
     if not result:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
