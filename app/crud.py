@@ -61,6 +61,7 @@ class BeerService:
             .filter(db_models.Beer.id == beer_id)
             .first()
         ):
+            print(self.db.query(db_models.Beer).filter(db_models.Beer.id == beer_id).first())
             return None
 
         db_update_data = self._prepare_db_update_data()
@@ -73,7 +74,7 @@ class BeerService:
             self._update_item(
                 table=db_models.Beer, item_id=beer_id, update_items=db_update_data
             )
-        return self.get_beer_with_id(db=self.db, beer_id=beer_id)
+        return BeerService.get_beer_with_id(db=self.db, beer_id=beer_id)
 
     @staticmethod
     def delete_beer(db: Session, beer_id: int):
@@ -103,7 +104,20 @@ class BeerService:
             .join(db_models.Brewery)
             .first()
         )
-        if beer_found:
+        if not beer_found:
+            return None
+
+        if not beer_found.brewery.city:
+            return schemas.BeerReturn(
+                id=beer_found.id,
+                name=beer_found.name,
+                ibu=beer_found.ibu,
+                abv=beer_found.abv,
+                ounces=beer_found.ounces,
+                style=beer_found.style.name,
+                brewery=beer_found.brewery.name,
+            )
+        if not beer_found.brewery.city.state:
             return schemas.BeerReturn(
                 id=beer_found.id,
                 name=beer_found.name,
@@ -113,9 +127,18 @@ class BeerService:
                 style=beer_found.style.name,
                 brewery=beer_found.brewery.name,
                 city=beer_found.brewery.city.name,
-                state=beer_found.brewery.city.state.name,
             )
-        return None
+        return schemas.BeerReturn(
+            id=beer_found.id,
+            name=beer_found.name,
+            ibu=beer_found.ibu,
+            abv=beer_found.abv,
+            ounces=beer_found.ounces,
+            style=beer_found.style.name,
+            brewery=beer_found.brewery.name,
+            city=beer_found.brewery.city.name,
+            state=beer_found.brewery.city.state.name
+        )
 
     @staticmethod
     def get_all_beers(db: Session, limit: int) -> list[schemas.BeerReturn]:

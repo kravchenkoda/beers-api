@@ -26,6 +26,8 @@ class BeerUpdate(BaseModel):
 
 class BeerReturn(BeerBase):
     id: int
+    city: Optional[str] = None
+    state: Optional[str] = None
 
 
 class BeerCreate(BeerBase):
