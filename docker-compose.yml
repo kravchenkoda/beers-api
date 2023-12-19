@@ -1,16 +1,19 @@
 version: '3.8'
 
 services:
-  postgres:
+  postgres-beers:
     image: postgres:12
-    container_name: postgres-db
+    container_name: postgres-beers
     env_file:
       - .env
     environment:
       - PGHOST=/var/run/postgresql
+      - PGDATABASE=$PGDATABASE_BEERS
+      - PGUSER=$PGUSER_BEERS
+      - PGPASSWORD=$PGPASSWORD_BEERS
     volumes:
       - "./postgresql/create_beers_db.sh:/docker-entrypoint-initdb.d/create_beers_db.sh"
-      - pg_data:/var/lib/postgresql/data
+      - pg_beers_data:/var/lib/postgresql/data
 
     healthcheck:
       test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
@@ -18,12 +21,36 @@ services:
       timeout: 5s
       retries: 5
 
-  populate-db:
+  postgres-users:
+    image: postgres:12
+    container_name: postgres-users
+    env_file:
+      - .env
+    environment:
+      - PGHOST=/var/run/postgresql
+      - PGDATABASE=$PGDATABASE_USERS
+      - PGUSER=$PGUSER_USERS
+      - PGPASSWORD=$PGPASSWORD_USERS
+    volumes:
+      - "./postgresql/create_users_db.sh:/docker-entrypoint-initdb.d/create_users_db.sh"
+      - pg_users_data:/var/lib/postgresql/data
+
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U $POSTGRES_USER" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  populate-beers-db:
     image: alpine:latest
     env_file:
       - .env
+    environment:
+      - PGUSER=$PGUSER_BEERS
+      - PGPASSWORD=$PGPASSWORD_BEERS
+      - PGDATABASE=$PGDATABASE_BEERS
     depends_on:
-      postgres:
+      postgres-beers:
         condition: service_healthy
     volumes:
       - "./postgresql/populate_beers_db.sh:/populate_beers_db.sh"
@@ -39,12 +66,15 @@ services:
       context: .
       dockerfile: Dockerfile
     depends_on:
-      populate-db:
+      populate-beers-db:
         condition: service_completed_successfully
+      postgres-users:
+        condition: service_healthy
     env_file:
       - .env
     ports:
       - "8000:8000"
 
 volumes:
-  pg_data:
+  pg_beers_data:
+  pg_users_data:

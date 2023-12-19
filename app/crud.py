@@ -3,7 +3,7 @@ from typing import Type, Optional
 from sqlalchemy import update
 from sqlalchemy.orm import Session
 
-import db_models
+import db_models.beers as db_models
 import schemas
 
 

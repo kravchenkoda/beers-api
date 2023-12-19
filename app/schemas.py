@@ -36,3 +36,13 @@ class BeerCreate(BeerBase):
 
 class BeerDelete(BaseModel):
     id: int
+
+
+class User(BaseModel):
+    username: str
+    password: str
+
+
+class Token(BaseModel):
+    access_token: str
+    token_type: str

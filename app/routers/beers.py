@@ -4,9 +4,14 @@ from fastapi import APIRouter, HTTPException, Depends, status, Header, Response
 from sqlalchemy.orm import Session
 
 from app import schemas, crud
-from app.dependencies.db import get_db
+from app.dependencies.beers_db import get_db
+from .auth import get_current_user
 
-beers_router = APIRouter(prefix='/beers', tags=['beers'])
+beers_router = APIRouter(
+    prefix='/beers',
+    tags=['beers'],
+    dependencies=[Depends(get_db), Depends(get_current_user)]
+)
 
 
 @beers_router.post(

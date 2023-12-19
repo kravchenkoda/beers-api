@@ -1,8 +1,9 @@
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI
 
 from routers.beers import beers_router
-from dependencies.db import get_db
+from routers.auth import auth
 
-app = FastAPI(dependencies=[Depends(get_db)])
+app = FastAPI()
 
 app.include_router(beers_router)
+app.include_router(auth)
